@@ -1,4 +1,14 @@
+
 import { request } from './config';
+export interface CarData {
+  id: number;
+  placa: string;
+  marca: string;
+  modelo: string;
+  color: string;
+  puntaje: number;
+}
+
 
 export interface ParkingLot {
   id?: number;
@@ -56,4 +66,12 @@ export async function updateParkingLot(id: number, data: Partial<ParkingLot & { 
 
 export async function updateCar(carId: number, data: { placa: string; marca?: string; modelo?: string; color?: string }): Promise<{ affected: number }> {
   return await request<{ affected: number }>(`/car/${carId}`, 'PATCH', data);
+}
+
+export async function getCarByPlate(plate: string): Promise<CarData | null> {
+  return await request<CarData | null>(`/car/plate/${plate}`, 'GET');
+}
+
+export async function redeemPrizeByPlate(plate: string, prizeId: number): Promise<CarData> {
+  return await request<CarData>(`/car/redeem/${plate}/${prizeId}`, 'POST');
 }

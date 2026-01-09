@@ -5,10 +5,11 @@ import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { ParkingLots } from './components/ParkingLots';
 import { ParkingLotDetail } from './components/ParkingLotDetail';
+import { PrizeManager } from './components/PrizeManager';
 
 function MainApp() {
   const { user, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'parking-lots'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'parking-lots' | 'mantenedores'>('dashboard');
   const [selectedLot, setSelectedLot] = useState<ParkingLot | null>(null);
 
   if (loading) {
@@ -40,6 +41,8 @@ function MainApp() {
           />
         ) : currentView === 'dashboard' ? (
           <Dashboard />
+        ) : currentView === 'mantenedores' ? (
+          <PrizeManager />
         ) : (
           <ParkingLots onSelectLot={setSelectedLot} />
         )}

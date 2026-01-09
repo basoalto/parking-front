@@ -2,8 +2,8 @@ import { LayoutDashboard, Building2, LogOut, Gauge } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'parking-lots';
-  onViewChange: (view: 'dashboard' | 'parking-lots') => void;
+  currentView: 'dashboard' | 'parking-lots' | 'mantenedores';
+  onViewChange: (view: 'dashboard' | 'parking-lots' | 'mantenedores') => void;
 }
 
 export function Sidebar({ currentView, onViewChange }: SidebarProps) {
@@ -49,6 +49,17 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
         >
           <Building2 className="w-5 h-5" />
           <span className="font-medium tracking-wide">PARKING LOTS</span>
+        </button>
+
+        <button
+          onClick={() => onViewChange('mantenedores')}
+          className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+            currentView === 'mantenedores'
+              ? 'bg-gradient-to-r from-yellow-600/20 to-yellow-500/20 border-l-4 border-yellow-400 text-yellow-300 shadow-lg shadow-yellow-400/10'
+              : 'text-gray-400 hover:text-yellow-400 hover:bg-yellow-500/5'
+          }`}
+        >
+          <span className="font-medium tracking-wide">MANTENEDORES</span>
         </button>
       </nav>
 

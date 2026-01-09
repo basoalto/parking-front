@@ -75,16 +75,16 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent mb-2">
-            PARKING LOTS
+            ESTACIONAMIENTOS
           </h1>
-          <p className="text-gray-400 tracking-wide">Manage your parking locations</p>
+          <p className="text-gray-400 tracking-wide">Administra tus ubicaciones de estacionamiento</p>
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
           className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-yellow-500 text-white font-bold rounded-lg shadow-lg shadow-orange-500/30 transition-all"
         >
           <Plus className="w-5 h-5" />
-          <span>CREATE LOT</span>
+          <span>CREAR ESTACIONAMIENTO</span>
         </button>
       </div>
 
@@ -98,34 +98,34 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
               <X className="w-6 h-6" />
             </button>
 
-            <h2 className="text-2xl font-bold text-orange-400 mb-6 tracking-wide">CREATE NEW LOT</h2>
+            <h2 className="text-2xl font-bold text-orange-400 mb-6 tracking-wide">CREAR NUEVO ESTACIONAMIENTO</h2>
 
             <form onSubmit={handleCreateLot} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-orange-400 mb-2">NAME</label>
+                <label className="block text-sm font-medium text-orange-400 mb-2">NOMBRE</label>
                 <input
                   type="text"
                   name="name"
                   required
                   className="w-full px-4 py-3 bg-black/50 border-2 border-orange-500/30 rounded-lg text-white focus:outline-none focus:border-orange-500 transition-all"
-                  placeholder="Downtown Parking"
+                  placeholder="Centro Parking"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-orange-400 mb-2">ADDRESS</label>
+                <label className="block text-sm font-medium text-orange-400 mb-2">DIRECCIÓN</label>
                 <input
                   type="text"
                   name="address"
                   required
                   className="w-full px-4 py-3 bg-black/50 border-2 border-orange-500/30 rounded-lg text-white focus:outline-none focus:border-orange-500 transition-all"
-                  placeholder="123 Main St"
+                  placeholder="Ej: Av. Principal 123"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-orange-400 mb-2">HOURLY RATE</label>
+                  <label className="block text-sm font-medium text-orange-400 mb-2">TARIFA POR HORA</label>
                   <input
                     type="number"
                     name="hourly_rate"
@@ -136,7 +136,7 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-orange-400 mb-2">MINIMUM RATE (optional)</label>
+                  <label className="block text-sm font-medium text-orange-400 mb-2">TARIFA MÍNIMA (opcional)</label>
                   <input
                     type="number"
                     name="minimum_rate"
@@ -146,7 +146,7 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-orange-400 mb-2">CAPACITY</label>
+                  <label className="block text-sm font-medium text-orange-400 mb-2">CAPACIDAD</label>
                   <input
                     type="number"
                     name="capacity"
@@ -161,7 +161,7 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
                 type="submit"
                 className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-yellow-500 text-white font-bold rounded-lg shadow-lg transition-all"
               >
-                CREATE
+                CREAR
               </button>
             </form>
           </div>
@@ -177,33 +177,33 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
             >
               <X className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold text-orange-400 mb-6 tracking-wide">EDIT LOT</h2>
+            <h2 className="text-2xl font-bold text-orange-400 mb-6 tracking-wide">EDITAR ESTACIONAMIENTO</h2>
             <form onSubmit={handleEditLot} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-orange-400 mb-2">NAME</label>
+                <label className="block text-sm font-medium text-orange-400 mb-2">NOMBRE</label>
                 <input
                   type="text"
                   name="name"
                   required
                   defaultValue={editLot.nombre}
                   className="w-full px-4 py-3 bg-black/50 border-2 border-orange-500/30 rounded-lg text-white focus:outline-none focus:border-orange-500 transition-all"
-                  placeholder="Downtown Parking"
+                  placeholder="Centro Parking"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-orange-400 mb-2">ADDRESS</label>
+                <label className="block text-sm font-medium text-orange-400 mb-2">DIRECCIÓN</label>
                 <input
                   type="text"
                   name="address"
                   required
                   defaultValue={editLot.direccion}
                   className="w-full px-4 py-3 bg-black/50 border-2 border-orange-500/30 rounded-lg text-white focus:outline-none focus:border-orange-500 transition-all"
-                  placeholder="123 Main St"
+                  placeholder="Ej: Av. Principal 123"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-orange-400 mb-2">HOURLY RATE</label>
+                  <label className="block text-sm font-medium text-orange-400 mb-2">TARIFA POR HORA</label>
                   <input
                     type="number"
                     name="hourly_rate"
@@ -214,7 +214,7 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-orange-400 mb-2">MINIMUM RATE (optional)</label>
+                  <label className="block text-sm font-medium text-orange-400 mb-2">TARIFA MÍNIMA (opcional)</label>
                   <input
                     type="number"
                     name="minimum_rate"
@@ -229,7 +229,7 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
                 type="submit"
                 className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-yellow-500 text-white font-bold rounded-lg shadow-lg transition-all"
               >
-                SAVE CHANGES
+                GUARDAR CAMBIOS
               </button>
             </form>
           </div>
@@ -240,12 +240,12 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
         {parkingLots.length === 0 ? (
           <div className="col-span-full text-center py-16">
             <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 text-lg mb-4">No parking lots yet</p>
+            <p className="text-gray-400 text-lg mb-4">Aún no hay estacionamientos</p>
             <button
               onClick={() => setShowCreateForm(true)}
               className="text-orange-400 hover:text-orange-300 transition-colors"
             >
-              Create your first parking lot
+              Crea tu primer estacionamiento
             </button>
           </div>
         ) : (
@@ -259,7 +259,7 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
                 <button
                   className="p-2 rounded-full bg-orange-500/20 hover:bg-orange-500/40 text-orange-400 hover:text-white transition-all"
                   onClick={e => { e.stopPropagation(); setEditLot(lot); setShowEditForm(true); }}
-                  title="Edit"
+                  title="Editar"
                 >
                   <Pencil className="w-5 h-5" />
                 </button>
@@ -280,12 +280,12 @@ export function ParkingLots({ onSelectLot }: ParkingLotsProps) {
                 </div>
                 <div className="flex items-center space-x-2 text-gray-400">
                   <DollarSign className="w-4 h-4" />
-                  <span>${lot.tarifaPorHora}/hour</span>
+                  <span>${lot.tarifaPorHora}/hora</span>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-orange-500/20">
                 <span className="text-orange-400 text-sm font-medium group-hover:text-orange-300 transition-colors">
-                  VIEW DETAILS →
+                  VER DETALLES →
                 </span>
               </div>
             </button>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, DollarSign, Car, Building2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getCarByPlate, redeemPrizeByPlate } from '../services/parking';
+import { getPrizes, Prize } from '../services/prize';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -12,6 +14,26 @@ interface DashboardStats {
 }
 
 export function Dashboard() {
+    const [showPrizes, setShowPrizes] = useState(false);
+    const [prizes, setPrizes] = useState<Prize[]>([]);
+    const [prizesLoading, setPrizesLoading] = useState(false);
+    const [prizesError, setPrizesError] = useState('');
+    const [redeemSuccess, setRedeemSuccess] = useState('');
+
+    const handleShowPrizes = async () => {
+      setPrizesLoading(true);
+      setPrizesError('');
+      setRedeemSuccess('');
+      try {
+        let data = await getPrizes();
+        if (!Array.isArray(data)) data = [];
+        setPrizes(data);
+        setShowPrizes(true);
+      } catch {
+        setPrizesError('Error al cargar premios');
+      }
+      setPrizesLoading(false);
+    };
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalRevenue: 0,
@@ -22,6 +44,10 @@ export function Dashboard() {
     currentlyParked: 0,
   });
   const [recentEntries, setRecentEntries] = useState<any[]>([]);
+  const [searchPlate, setSearchPlate] = useState('');
+  const [carData, setCarData] = useState<any | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,119 +80,138 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* ...existing code... */}
         <div className="bg-zinc-900/50 border-2 border-orange-500/30 rounded-lg p-6 relative overflow-hidden group hover:border-orange-500/60 transition-all">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-all"></div>
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-orange-500/10 rounded-lg">
-                <DollarSign className="w-6 h-6 text-orange-500" />
-              </div>
-              <TrendingUp className="w-5 h-5 text-green-500" />
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">
-              ${stats.todayRevenue.toFixed(2)}
-            </h3>
-            <p className="text-sm text-gray-400 tracking-wide">TODAY'S REVENUE</p>
-          </div>
+          {/* ...existing code... */}
         </div>
-
         <div className="bg-zinc-900/50 border-2 border-yellow-500/30 rounded-lg p-6 relative overflow-hidden group hover:border-yellow-500/60 transition-all">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-all"></div>
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-yellow-500/10 rounded-lg">
-                <Car className="w-6 h-6 text-yellow-500" />
-              </div>
-              <TrendingUp className="w-5 h-5 text-green-500" />
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">
-              {stats.todayVehicles}
-            </h3>
-            <p className="text-sm text-gray-400 tracking-wide">TODAY'S VEHICLES</p>
-          </div>
+          {/* ...existing code... */}
         </div>
-
         <div className="bg-zinc-900/50 border-2 border-orange-500/30 rounded-lg p-6 relative overflow-hidden group hover:border-orange-500/60 transition-all">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-all"></div>
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-orange-500/10 rounded-lg">
-                <DollarSign className="w-6 h-6 text-orange-500" />
-              </div>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">
-              ${stats.totalRevenue.toFixed(2)}
-            </h3>
-            <p className="text-sm text-gray-400 tracking-wide">TOTAL REVENUE</p>
-          </div>
+          {/* ...existing code... */}
         </div>
-
         <div className="bg-zinc-900/50 border-2 border-yellow-500/30 rounded-lg p-6 relative overflow-hidden group hover:border-yellow-500/60 transition-all">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-all"></div>
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-yellow-500/10 rounded-lg">
-                <Building2 className="w-6 h-6 text-yellow-500" />
-              </div>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">
-              {stats.activeParkingLots}
-            </h3>
-            <p className="text-sm text-gray-400 tracking-wide">ACTIVE LOTS</p>
-          </div>
+          {/* ...existing code... */}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-zinc-900/50 border-2 border-orange-500/30 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-orange-400 mb-4 tracking-wide">RECENT ACTIVITY</h2>
-          <div className="space-y-3">
-            {recentEntries.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No recent activity</p>
-            ) : (
-              recentEntries.map((entry) => (
-                <div key={entry.id} className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-orange-500/10 hover:border-orange-500/30 transition-all">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-orange-500/10 rounded">
-                      <Car className="w-4 h-4 text-orange-500" />
-                    </div>
-                    <div>
-                      <p className="text-white font-medium">{entry.license_plate}</p>
-                      <p className="text-xs text-gray-400">{entry.parking_lot_name}</p>
-                    </div>
+        <div className="bg-gradient-to-br from-black via-zinc-900 to-orange-900 border-2 border-orange-500/50 rounded-lg p-6 shadow-lg">
+          <h2 className="text-2xl font-extrabold text-orange-400 mb-6 tracking-wide uppercase font-nfs">Buscador de autos por patente</h2>
+          <div className="flex items-center gap-4 mb-6">
+            <input
+              type="text"
+              value={searchPlate}
+              onChange={e => setSearchPlate(e.target.value.toUpperCase())}
+              placeholder="Ingresa la patente..."
+              className="w-full px-6 py-3 rounded-lg bg-zinc-800 text-orange-400 font-bold text-xl border-2 border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-nfs"
+              style={{letterSpacing: '0.2em', fontFamily: 'Orbitron, sans-serif'}}
+              maxLength={8}
+            />
+            <button
+              onClick={async () => {
+                setSearchLoading(true);
+                setSearchError('');
+                setCarData(null);
+                try {
+                  const data = await getCarByPlate(searchPlate);
+                  if (!data) {
+                    setSearchError('No se encontró un auto con esa patente');
+                  } else {
+                    setCarData(data);
+                  }
+                } catch (err) {
+                  setSearchError('Error al buscar la patente');
+                }
+                setSearchLoading(false);
+              }}
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 text-black font-extrabold text-xl shadow-nfs hover:scale-105 transition-transform"
+              style={{fontFamily: 'Orbitron, sans-serif'}}
+              disabled={searchLoading || !searchPlate}
+            >
+              {searchLoading ? 'Buscando...' : 'Buscar'}
+            </button>
+          </div>
+          {searchError && (
+            <div className="text-red-500 font-bold mb-4 text-center">{searchError}</div>
+          )}
+          {carData && (
+            <>
+              <div
+                className="mt-4 p-6 rounded-xl bg-black/60 border-2 border-orange-500 shadow-nfs flex flex-col items-center animate-fade-in cursor-pointer hover:bg-orange-950/80 transition"
+                title="Ver premios disponibles"
+                onClick={handleShowPrizes}
+                style={{userSelect: 'none'}}
+              >
+                <div className="flex items-center gap-6 mb-4">
+                  <Car className="w-16 h-16 text-orange-500 drop-shadow-nfs" />
+                  <div>
+                    <p className="text-3xl font-extrabold text-orange-400 tracking-widest" style={{fontFamily: 'Orbitron, sans-serif'}}>{carData.placa}</p>
+                    <p className="text-lg text-gray-300 font-bold">{carData.marca} {carData.modelo}</p>
+                    <p className="text-md text-orange-300">Color: <span className="font-bold">{carData.color}</span></p>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${entry.exit_time ? 'text-green-400' : 'text-yellow-400'}`}>
-                      {entry.exit_time ? 'EXITED' : 'PARKED'}
-                    </p>
-                    {entry.amount_paid && (
-                      <p className="text-xs text-gray-400">${entry.amount_paid.toFixed(2)}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Puntaje:</span>
+                  <span className="text-2xl font-bold text-yellow-400">{carData.puntaje}</span>
+                  <span className="text-yellow-400">★</span>
+                </div>
+                <div className="mt-2 text-xs text-orange-300">Haz clic para canjear premios</div>
+              </div>
+              {showPrizes && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+                  <div className="bg-zinc-900 border-2 border-orange-500 rounded-xl p-8 max-w-lg w-full relative animate-fade-in">
+                    <button
+                      className="absolute top-2 right-2 text-orange-400 hover:text-orange-200 text-2xl font-bold"
+                      onClick={() => setShowPrizes(false)}
+                      title="Cerrar"
+                    >×</button>
+                    <h3 className="text-2xl font-bold text-orange-400 mb-4 text-center">Premios disponibles</h3>
+                    {prizesLoading ? (
+                      <div className="text-orange-400 text-center">Cargando premios...</div>
+                    ) : prizesError ? (
+                      <div className="text-red-500 text-center">{prizesError}</div>
+                    ) : (
+                      <div className="space-y-4">
+                        {prizes.length === 0 ? (
+                          <div className="text-gray-400 text-center">No hay premios disponibles.</div>
+                        ) : (
+                          prizes.map(prize => (
+                            <div key={prize.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-zinc-800/80 border border-orange-500/20 rounded-lg p-4">
+                              <div>
+                                <div className="text-lg font-bold text-orange-300">{prize.name}</div>
+                                <div className="text-yellow-400 font-bold">{prize.pointsRequired} puntos</div>
+                                <div className="text-gray-300 text-sm">{prize.description}</div>
+                              </div>
+                              <button
+                                className={`px-4 py-2 rounded-lg font-bold text-black transition-all ${carData.puntaje >= prize.pointsRequired ? 'bg-gradient-to-r from-orange-500 to-yellow-500 hover:scale-105' : 'bg-gray-500 cursor-not-allowed'}`}
+                                disabled={carData.puntaje < prize.pointsRequired}
+                                onClick={async () => {
+                                  try {
+                                    const updatedCar = await redeemPrizeByPlate(carData.placa, prize.id);
+                                    setCarData(updatedCar);
+                                    setRedeemSuccess(`¡Premio "${prize.name}" canjeado para ${updatedCar.placa}!`);
+                                  } catch {
+                                    setRedeemSuccess('Error al canjear el premio');
+                                  }
+                                }}
+                              >
+                                Canjear
+                              </button>
+                            </div>
+                          ))
+                        )}
+                        {redeemSuccess && <div className="text-green-400 font-bold text-center mt-4">{redeemSuccess}</div>}
+                      </div>
                     )}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              )}
+            </>
+          )}
         </div>
-
         <div className="bg-zinc-900/50 border-2 border-yellow-500/30 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-yellow-400 mb-4 tracking-wide">QUICK STATS</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-black/30 rounded-lg border border-yellow-500/10">
-              <span className="text-gray-300">Currently Parked</span>
-              <span className="text-2xl font-bold text-yellow-400">{stats.currentlyParked}</span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-black/30 rounded-lg border border-orange-500/10">
-              <span className="text-gray-300">Total Vehicles</span>
-              <span className="text-2xl font-bold text-orange-400">{stats.totalVehicles}</span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-black/30 rounded-lg border border-green-500/10">
-              <span className="text-gray-300">Avg Revenue/Vehicle</span>
-              <span className="text-2xl font-bold text-green-400">
-                ${stats.totalVehicles > 0 ? (stats.totalRevenue / stats.totalVehicles).toFixed(2) : '0.00'}
-              </span>
-            </div>
-          </div>
+          {/* ...existing code... */}
         </div>
       </div>
     </div>
