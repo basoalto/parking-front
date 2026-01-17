@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
   import { ArrowLeft, Car, Plus, Clock, DollarSign, LogOut as ExitIcon, X, Pencil } from 'lucide-react';
-  import { assignCarToParkingLot, getActiveAssignments, getFinishedAssignments, checkoutAssignment, updateCar } from '../services/parking';
+  import { assignCarToParkingLot, getActiveAssignments, getFinishedAssignments, checkoutAssignment, updateCar, assignPersonToCar } from '../services/parking';
 
   interface ParkingLotDetailProps {
     lot: any;
@@ -15,6 +15,53 @@ import { useState, useEffect } from 'react';
     const [showEditCarForm, setShowEditCarForm] = useState(false);
     const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
     const [checkoutEntry, setCheckoutEntry] = useState<any | null>(null);
+    const [showAssignRut, setShowAssignRut] = useState(false);
+    const [selectedCar, setSelectedCar] = useState<any | null>(null);
+    // Formatear RUT chileno en tiempo real
+    const formatRut = (value: string) => {
+      // Solo dígitos y k/K
+      let clean = value.replace(/[^0-9kK]/g, '').toUpperCase();
+      if (clean.length === 0) return '';
+      // Separar cuerpo y dígito verificador
+      let cuerpo = clean.slice(0, -1);
+      let dv = clean.slice(-1);
+      let formatted = '';
+      let i = 0;
+      for (let j = cuerpo.length; j > 0; j -= 3) {
+        let start = Math.max(j - 3, 0);
+        let part = cuerpo.substring(start, j);
+        formatted = part + (i > 0 ? '.' : '') + formatted;
+        i++;
+      }
+      if (cuerpo.length > 0) {
+        formatted += '-' + dv;
+      } else {
+        formatted = dv;
+      }
+      return formatted;
+    };
+
+    // Handler para input de RUT
+    const handleRutInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.value.replace(/[^0-9kK]/g, '');
+      e.target.value = formatRut(raw);
+    };
+
+    // Asignar rut a auto
+    const handleAssignRut = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (!selectedCar) return;
+      const formData = new FormData(e.currentTarget);
+      const rut = formData.get('rut') as string;
+      try {
+        await assignPersonToCar(selectedCar.carId || selectedCar.id, rut);
+        setShowAssignRut(false);
+        setSelectedCar(null);
+        alert('Rut asignado correctamente');
+      } catch (err) {
+        alert('Error al asignar rut');
+      }
+    };
 
     useEffect(() => {
       if (lot?.id) {
@@ -378,6 +425,15 @@ const completedToday = completedEntries
                     key={entry.id}
                     className="bg-zinc-900/50 border-2 border-orange-500/30 rounded-lg p-5 hover:border-orange-500/60 transition-all relative"
                   >
+                    <div className="flex items-center mb-2">
+                      <button
+                        className="px-3 py-1 rounded bg-orange-500/20 hover:bg-orange-500/40 text-orange-400 hover:text-white transition-all border border-orange-400 text-xs font-bold"
+                        onClick={e => { e.stopPropagation(); setSelectedCar(entry); setShowAssignRut(true); }}
+                        title="Asignar RUT"
+                      >
+                        Asignar RUT
+                      </button>
+                    </div>
                     <button
                       className="absolute top-2 right-2 p-1 rounded-full bg-orange-500/20 hover:bg-orange-500/40 text-orange-400 hover:text-white transition-all"
                       onClick={e => { e.stopPropagation(); setEditCar(entry); setShowEditCarForm(true); }}
@@ -485,8 +541,68 @@ const completedToday = completedEntries
                 {completedToday.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-zinc-900/50 border-2 border-yellow-500/20 rounded-lg p-4 flex items-center justify-between hover:border-yellow-500/40 transition-all"
+                    className="bg-zinc-900/50 border-2 border-yellow-500/20 rounded-lg p-4 flex flex-col hover:border-yellow-500/40 transition-all"
                   >
+                    <div className="flex items-center mb-2">
+                      <button
+                        className="px-3 py-1 rounded bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-500 hover:text-white transition-all border border-yellow-400 text-xs font-bold"
+                        onClick={e => { e.stopPropagation(); setSelectedCar(entry); setShowAssignRut(true); }}
+                        title="Asignar RUT"
+                      >
+                        Asignar RUT
+                      </button>
+                    </div>
+
+      {/* Modal para asignar rut */}
+      {showAssignRut && selectedCar && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border-2 border-orange-500/30 rounded-lg p-6 max-w-md w-full relative">
+            <button
+              onClick={() => { setShowAssignRut(false); setSelectedCar(null); }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-2xl font-bold text-orange-400 mb-4">Asignar RUT a vehículo</h2>
+            <form onSubmit={handleAssignRut} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Patente</label>
+                <input type="text" value={selectedCar.placa} disabled className="w-full bg-zinc-800 text-white rounded p-2" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">RUT de la persona a cargo</label>
+                <input
+                  name="rut"
+                  type="text"
+                  required
+                  placeholder="Ej: 12.345.678-9"
+                  className="w-full bg-zinc-800 text-white rounded p-2"
+                  maxLength={12}
+                  autoComplete="off"
+                  onInput={handleRutInput}
+                  inputMode="numeric"
+                  pattern="[0-9.\-kK]+"
+                />
+              </div>
+              <div className="flex space-x-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => { setShowAssignRut(false); setSelectedCar(null); }}
+                  className="w-1/2 py-2 border border-gray-500 text-gray-300 rounded-lg hover:bg-gray-700 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition-all"
+                >
+                  Asignar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
                     <div className="flex items-center space-x-4">
                       <div className="p-2 bg-yellow-500/10 rounded">
                         <Car className="w-5 h-5 text-yellow-500" />

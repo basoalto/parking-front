@@ -75,3 +75,8 @@ export async function getCarByPlate(plate: string): Promise<CarData | null> {
 export async function redeemPrizeByPlate(plate: string, prizeId: number): Promise<CarData> {
   return await request<CarData>(`/car/redeem/${plate}/${prizeId}`, 'POST');
 }
+
+// Asignar persona a un auto
+export async function assignPersonToCar(carId: number, rut: string): Promise<{ success: boolean }> {
+  return await request<{ success: boolean }>('/car/assign-person', 'POST', { carId, rut });
+}
