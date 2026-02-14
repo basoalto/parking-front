@@ -26,7 +26,7 @@ export function InventoryModal({
   const [showInvalidQuantity, setShowInvalidQuantity] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-  const [sellQuantity, setSellQuantity] = useState(1);
+const [sellQuantity, setSellQuantity] = useState<number | ''>('');
   const [sellTotal, setSellTotal] = useState(0);
   const [showSaleSuccess, setShowSaleSuccess] = useState(false);
 
@@ -179,18 +179,27 @@ export function InventoryModal({
                   Cantidad disponible: {selectedProduct.quantity}
                 </div>
 
-                <input
-                  type="number"
-                  min={1}
-                  max={selectedProduct.quantity}
-                  value={sellQuantity}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setSellQuantity(val);
-                    setSellTotal(val * selectedProduct.product.price);
-                  }}
-                  className="w-full p-2 rounded bg-zinc-900 text-white mb-2"
-                />
+<input
+  type="number"
+  min={1}
+  max={selectedProduct.quantity}
+  value={sellQuantity}
+  onChange={(e) => {
+    const val = e.target.value;
+
+    if (val === '') {
+      setSellQuantity('');
+      setSellTotal(0);
+      return;
+    }
+
+    const num = Number(val);
+    setSellQuantity(num);
+    setSellTotal(num * selectedProduct.product.price);
+  }}
+  className="w-full p-2 rounded bg-zinc-900 text-white mb-2"
+/>
+
 
                 <div className="mb-2 text-yellow-400 font-bold">
                   Total: ${sellTotal}
