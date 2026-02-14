@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   getProductsByParkingLot,
   createProduct,
   editProduct,
   deleteProduct,
-  sellProduct
-} from '../services/inventory';
-import { X, Pencil, Trash2, Plus } from 'lucide-react';
+  sellProduct,
+} from "../services/inventory";
+import { X, Pencil, Trash2, Plus } from "lucide-react";
 
 interface InventoryModalProps {
   parkingLotId: number;
@@ -17,16 +17,16 @@ interface InventoryModalProps {
 export function InventoryModal({
   parkingLotId,
   open,
-  onClose
+  onClose,
 }: InventoryModalProps) {
   const [products, setProducts] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editProductData, setEditProductData] = useState<any | null>(null);
   const [showInvalidQuantity, setShowInvalidQuantity] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-const [sellQuantity, setSellQuantity] = useState<number | ''>('');
+  const [sellQuantity, setSellQuantity] = useState<number | "">("");
   const [sellTotal, setSellTotal] = useState(0);
   const [showSaleSuccess, setShowSaleSuccess] = useState(false);
 
@@ -41,7 +41,7 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
       const data = await getProductsByParkingLot(parkingLotId);
       setProducts(data || []);
     } catch {
-      alert('Error al cargar productos');
+      alert("Error al cargar productos");
     }
   };
 
@@ -52,17 +52,17 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
     try {
       await createProduct({
         parkingLotId,
-        name: form.get('name'),
-        barcode: form.get('barcode'),
-        price: Number(form.get('price')),
-        description: form.get('description'),
-        quantity: Number(form.get('quantity'))
+        name: form.get("name"),
+        barcode: form.get("barcode"),
+        price: Number(form.get("price")),
+        description: form.get("description"),
+        quantity: Number(form.get("quantity")),
       });
 
       setShowAddForm(false);
       fetchProducts();
     } catch {
-      alert('Error al crear producto');
+      alert("Error al crear producto");
     }
   };
 
@@ -74,44 +74,38 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
 
     try {
       await editProduct(editProductData.product.id, {
-        name: form.get('name'),
-        price: Number(form.get('price')),
-        description: form.get('description')
+        name: form.get("name"),
+        price: Number(form.get("price")),
+        description: form.get("description"),
       });
 
       setEditProductData(null);
       fetchProducts();
     } catch {
-      alert('Error al editar producto');
+      alert("Error al editar producto");
     }
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (!window.confirm('¿Eliminar producto?')) return;
+    if (!window.confirm("¿Eliminar producto?")) return;
     try {
       await deleteProduct(id);
       fetchProducts();
     } catch {
-      alert('Error al eliminar producto');
+      alert("Error al eliminar producto");
     }
   };
 
   const handleSell = async () => {
     if (!selectedProduct) return;
 
-    if (
-      sellQuantity < 1 ||
-      sellQuantity > selectedProduct.quantity
-    ) {
+    if (sellQuantity < 1 || sellQuantity > selectedProduct.quantity) {
       setShowInvalidQuantity(true);
       return;
     }
 
     try {
-      const res = await sellProduct(
-        selectedProduct.id,
-        sellQuantity
-      );
+      const res = await sellProduct(selectedProduct.id, sellQuantity);
 
       if (res?.sale?.id) {
         setShowSaleSuccess(true);
@@ -120,10 +114,10 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
         setSellTotal(0);
         fetchProducts();
       } else {
-        alert('Error al vender producto');
+        alert("Error al vender producto");
       }
     } catch {
-      alert('Error al vender producto');
+      alert("Error al vender producto");
     }
   };
 
@@ -133,7 +127,6 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
       {open && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-zinc-900 border-2 border-orange-500/30 rounded-lg p-8 max-w-2xl w-full relative">
-
             <button
               onClick={onClose}
               className="absolute top-4 right-4 text-gray-400 hover:text-orange-400"
@@ -179,27 +172,26 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
                   Cantidad disponible: {selectedProduct.quantity}
                 </div>
 
-<input
-  type="number"
-  min={1}
-  max={selectedProduct.quantity}
-  value={sellQuantity}
-  onChange={(e) => {
-    const val = e.target.value;
+                <input
+                  type="number"
+                  min={1}
+                  max={selectedProduct.quantity}
+                  value={sellQuantity}
+                  onChange={(e) => {
+                    const val = e.target.value;
 
-    if (val === '') {
-      setSellQuantity('');
-      setSellTotal(0);
-      return;
-    }
+                    if (val === "") {
+                      setSellQuantity("");
+                      setSellTotal(0);
+                      return;
+                    }
 
-    const num = Number(val);
-    setSellQuantity(num);
-    setSellTotal(num * selectedProduct.product.price);
-  }}
-  className="w-full p-2 rounded bg-zinc-900 text-white mb-2"
-/>
-
+                    const num = Number(val);
+                    setSellQuantity(num);
+                    setSellTotal(num * selectedProduct.product.price);
+                  }}
+                  className="w-full p-2 rounded bg-zinc-900 text-white mb-2"
+                />
 
                 <div className="mb-2 text-yellow-400 font-bold">
                   Total: ${sellTotal}
@@ -242,13 +234,13 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
                           item.product.barcode,
                           item.product.price,
                           item.product.description,
-                          item.quantity
+                          item.quantity,
                         ];
                         return values.some((v) =>
                           v
                             ?.toString()
                             .toLowerCase()
-                            .includes(search.toLowerCase())
+                            .includes(search.toLowerCase()),
                         );
                       })
                       .map((item: any) => (
@@ -256,7 +248,9 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
                           <td className="px-4 py-2">{item.product.name}</td>
                           <td className="px-4 py-2">{item.product.barcode}</td>
                           <td className="px-4 py-2">${item.product.price}</td>
-                          <td className="px-4 py-2">{item.product.description}</td>
+                          <td className="px-4 py-2">
+                            {item.product.description}
+                          </td>
                           <td className="px-4 py-2">{item.quantity}</td>
                           <td className="px-4 py-2 flex space-x-2">
                             <button onClick={() => setEditProductData(item)}>
@@ -300,19 +294,46 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
                   </button>
 
                   <form onSubmit={handleAddProduct} className="space-y-4">
-                    <input name="name" required className="w-full p-2 rounded bg-zinc-800 text-white" placeholder="Nombre" />
-                    <input name="barcode" className="w-full p-2 rounded bg-zinc-800 text-white" placeholder="Código" />
-                    <input name="price" type="number" required className="w-full p-2 rounded bg-zinc-800 text-white" placeholder="Precio" />
-                    <input name="description" className="w-full p-2 rounded bg-zinc-800 text-white" placeholder="Descripción" />
-                    <input name="quantity" type="number" required className="w-full p-2 rounded bg-zinc-800 text-white" placeholder="Cantidad" />
-                    <button type="submit" className="w-full py-2 bg-orange-600 text-white rounded-lg">
+                    <input
+                      name="name"
+                      required
+                      className="w-full p-2 rounded bg-zinc-800 text-white"
+                      placeholder="Nombre"
+                    />
+                    <input
+                      name="barcode"
+                      className="w-full p-2 rounded bg-zinc-800 text-white"
+                      placeholder="Código"
+                    />
+                    <input
+                      name="price"
+                      type="number"
+                      required
+                      className="w-full p-2 rounded bg-zinc-800 text-white"
+                      placeholder="Precio"
+                    />
+                    <input
+                      name="description"
+                      className="w-full p-2 rounded bg-zinc-800 text-white"
+                      placeholder="Descripción"
+                    />
+                    <input
+                      name="quantity"
+                      type="number"
+                      required
+                      className="w-full p-2 rounded bg-zinc-800 text-white"
+                      placeholder="Cantidad"
+                    />
+                    <button
+                      type="submit"
+                      className="w-full py-2 bg-orange-600 text-white rounded-lg"
+                    >
                       Agregar
                     </button>
                   </form>
                 </div>
               </div>
             )}
-
           </div>
         </div>
       )}
@@ -351,59 +372,56 @@ const [sellQuantity, setSellQuantity] = useState<number | ''>('');
         </div>
       )}
 
-{/* POPUP EDITAR PRODUCTO */}
-{editProductData && (
-  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
-    <div className="bg-zinc-900 border-2 border-blue-500/30 rounded-lg p-8 max-w-md w-full relative">
+      {/* POPUP EDITAR PRODUCTO */}
+      {editProductData && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+          <div className="bg-zinc-900 border-2 border-blue-500/30 rounded-lg p-8 max-w-md w-full relative">
+            <button
+              onClick={() => setEditProductData(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-blue-400"
+            >
+              <X className="w-6 h-6" />
+            </button>
 
-      <button
-        onClick={() => setEditProductData(null)}
-        className="absolute top-4 right-4 text-gray-400 hover:text-blue-400"
-      >
-        <X className="w-6 h-6" />
-      </button>
+            <h3 className="text-2xl font-bold text-blue-400 mb-4">
+              Editar Producto
+            </h3>
 
-      <h3 className="text-2xl font-bold text-blue-400 mb-4">
-        Editar Producto
-      </h3>
+            <form onSubmit={handleEditProduct} className="space-y-4">
+              <input
+                name="name"
+                defaultValue={editProductData.product.name}
+                required
+                className="w-full p-2 rounded bg-zinc-800 text-white"
+                placeholder="Nombre"
+              />
 
-      <form onSubmit={handleEditProduct} className="space-y-4">
-        <input
-          name="name"
-          defaultValue={editProductData.product.name}
-          required
-          className="w-full p-2 rounded bg-zinc-800 text-white"
-          placeholder="Nombre"
-        />
+              <input
+                name="price"
+                type="number"
+                defaultValue={editProductData.product.price}
+                required
+                className="w-full p-2 rounded bg-zinc-800 text-white"
+                placeholder="Precio"
+              />
 
-        <input
-          name="price"
-          type="number"
-          defaultValue={editProductData.product.price}
-          required
-          className="w-full p-2 rounded bg-zinc-800 text-white"
-          placeholder="Precio"
-        />
+              <input
+                name="description"
+                defaultValue={editProductData.product.description}
+                className="w-full p-2 rounded bg-zinc-800 text-white"
+                placeholder="Descripción"
+              />
 
-        <input
-          name="description"
-          defaultValue={editProductData.product.description}
-          className="w-full p-2 rounded bg-zinc-800 text-white"
-          placeholder="Descripción"
-        />
-
-        <button
-          type="submit"
-          className="w-full py-2 bg-blue-600 text-white rounded-lg"
-        >
-          Guardar Cambios
-        </button>
-      </form>
-    </div>
-  </div>
-)}
-
-
+              <button
+                type="submit"
+                className="w-full py-2 bg-blue-600 text-white rounded-lg"
+              >
+                Guardar Cambios
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
