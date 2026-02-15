@@ -65,3 +65,19 @@ export async function sellProduct(stockId: number, quantity: number) {
     { quantity }
   );
 }
+
+// Obtener ventas totales de todos los productos de un estacionamiento en un rango de fechas
+export async function getTotalSalesByParkingLot(parkingLotId: number, startDate: string, endDate: string) {
+  return await request<any[]>(
+    `/products/sales/parkinglot/${parkingLotId}?startDate=${startDate}&endDate=${endDate}`,
+    'GET'
+  );
+}
+
+// Obtener ventas totales de un producto específico en un rango de fechas
+export async function getTotalSalesByProduct(productId: number, startDate: string, endDate: string) {
+  return await request<any>(
+    `/products/sales/product/${productId}?startDate=${startDate}&endDate=${endDate}`,
+    'GET'
+  );
+}

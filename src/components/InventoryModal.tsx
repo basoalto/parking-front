@@ -5,8 +5,13 @@ import {
   editProduct,
   deleteProduct,
   sellProduct,
+  getTotalSalesByParkingLot,
+  getTotalSalesByProduct,
+  Product,
 } from "../services/inventory";
-import { X, Pencil, Trash2, Plus } from "lucide-react";
+import { X, Pencil, Trash2, Plus, BarChart2 } from "lucide-react";
+import { SalesReportModal } from "./SalesReportModal";
+import { ProductSalesReportModal } from "./ProductSalesReportModal";
 
 interface InventoryModalProps {
   parkingLotId: number;
@@ -19,21 +24,37 @@ export function InventoryModal({
   open,
   onClose,
 }: InventoryModalProps) {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<{ product: Product; quantity: number }[]>([]);
   const [search, setSearch] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editProductData, setEditProductData] = useState<any | null>(null);
+  const [editProductData, setEditProductData] = useState<{ product: Product; quantity: number } | null>(null);
   const [showInvalidQuantity, setShowInvalidQuantity] = useState(false);
 
-  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<{ product: Product; quantity: number } | null>(null);
   const [sellQuantity, setSellQuantity] = useState<number | "">("");
   const [sellTotal, setSellTotal] = useState(0);
   const [showSaleSuccess, setShowSaleSuccess] = useState(false);
+
+  // Reporte de ventas
+  const [showSalesReport, setShowSalesReport] = useState(false);
+  const [salesReportData, setSalesReportData] = useState<{ productId: number; productName: string; totalQuantity: string; totalAmount: string }[]>([]);
+  const [showSalesReportModal, setShowSalesReportModal] = useState(false);
+  const [salesReportStart, setSalesReportStart] = useState("");
+  const [salesReportEnd, setSalesReportEnd] = useState("");
+  const [loadingSalesReport, setLoadingSalesReport] = useState(false);
+
+  // Reporte por producto
+  const [productReportData, setProductReportData] = useState<{ totalQuantity: string; totalAmount: string } | null>(null);
+  const [productReportStart, setProductReportStart] = useState("");
+  const [productReportEnd, setProductReportEnd] = useState("");
+  const [selectedReportProduct, setSelectedReportProduct] = useState<{ product: Product; quantity: number } | null>(null);
+  const [loadingProductReport, setLoadingProductReport] = useState(false);
 
   useEffect(() => {
     if (open) {
       fetchProducts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const fetchProducts = async () => {
@@ -52,10 +73,10 @@ export function InventoryModal({
     try {
       await createProduct({
         parkingLotId,
-        name: form.get("name"),
-        barcode: form.get("barcode"),
+        name: String(form.get("name") || ""),
+        barcode: String(form.get("barcode") || ""),
         price: Number(form.get("price")),
-        description: form.get("description"),
+        description: String(form.get("description") || ""),
         quantity: Number(form.get("quantity")),
       });
 
@@ -73,10 +94,10 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
   const form = new FormData(e.currentTarget);
 
   try {
-    const data: any = {
-      name: form.get('name'),
+    const data: Partial<Product> & { parkingLotId: number; quantity?: number } = {
+      name: String(form.get('name') || ''),
       price: Number(form.get('price')),
-      description: form.get('description'),
+      description: String(form.get('description') || ''),
       parkingLotId,
     };
     const newQuantity = Number(form.get('quantity'));
@@ -108,13 +129,13 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
   const handleSell = async () => {
     if (!selectedProduct) return;
 
-    if (sellQuantity < 1 || sellQuantity > selectedProduct.quantity) {
+    if (typeof sellQuantity !== 'number' || sellQuantity < 1 || sellQuantity > selectedProduct.quantity) {
       setShowInvalidQuantity(true);
       return;
     }
 
     try {
-      const res = await sellProduct(selectedProduct.id, sellQuantity);
+      const res = await sellProduct(selectedProduct.product.id, sellQuantity);
 
       if (res?.sale?.id) {
         setShowSaleSuccess(true);
@@ -147,13 +168,164 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
               Inventario de Productos
             </h2>
 
+
+            <div className="flex mb-4 gap-2">
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Agregar Producto</span>
+              </button>
+              <button
+                onClick={() => setShowSalesReport(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg ml-auto"
+              >
+                <BarChart2 className="w-4 h-4" />
+                <span>Ver Informe</span>
+              </button>
+            </div>
+      {/* MODAL INFORME DE VENTAS GENERAL */}
+      {showSalesReport && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-zinc-900 border-2 border-orange-500/30 rounded-lg p-8 max-w-lg w-full relative">
             <button
-              onClick={() => setShowAddForm(true)}
-              className="mb-4 flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg"
+              onClick={() => setShowSalesReport(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-orange-400"
             >
-              <Plus className="w-4 h-4" />
-              <span>Agregar Producto</span>
+              <X className="w-6 h-6" />
             </button>
+            <h3 className="text-2xl font-bold text-orange-400 mb-4">Informe de Ventas</h3>
+            <form
+              className="mb-4 flex flex-col gap-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setLoadingSalesReport(true);
+                try {
+                  const data = await getTotalSalesByParkingLot(
+                    parkingLotId,
+                    salesReportStart,
+                    salesReportEnd
+                  );
+                  setSalesReportData(data || []);
+                  setShowSalesReportModal(true);
+                } catch {
+                  setSalesReportData([]);
+                  alert("Error al obtener informe");
+                }
+                setLoadingSalesReport(false);
+              }}
+            >
+              <label className="text-sm text-gray-300">Rango de fechas</label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={salesReportStart}
+                  onChange={e => setSalesReportStart(e.target.value)}
+                  className="p-2 rounded bg-zinc-800 text-white"
+                  required
+                />
+                <input
+                  type="date"
+                  value={salesReportEnd}
+                  onChange={e => setSalesReportEnd(e.target.value)}
+                  className="p-2 rounded bg-zinc-800 text-white"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg"
+                  disabled={loadingSalesReport}
+                >
+                  {loadingSalesReport ? "Cargando..." : "Ver informe"}
+                </button>
+              </div>
+            </form>
+            <SalesReportModal
+              open={showSalesReportModal}
+              onClose={() => {
+                setShowSalesReportModal(false);
+                setSalesReportData([]);
+              }}
+              data={salesReportData}
+              startDate={salesReportStart}
+              endDate={salesReportEnd}
+            />
+            <hr className="my-4 border-zinc-700" />
+            <h4 className="text-lg font-bold text-blue-400 mb-2">Informe por Producto</h4>
+            <form
+              className="flex flex-col gap-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!selectedReportProduct) return;
+                setLoadingProductReport(true);
+                try {
+                  const data = await getTotalSalesByProduct(
+                    selectedReportProduct.product.id,
+                    productReportStart,
+                    productReportEnd
+                  );
+                  setProductReportData(data);
+                } catch {
+                  setProductReportData(null);
+                  alert("Error al obtener informe por producto");
+                }
+                setLoadingProductReport(false);
+              }}
+            >
+              <label className="text-sm text-gray-300">Rango de fechas</label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={productReportStart}
+                  onChange={e => setProductReportStart(e.target.value)}
+                  className="p-2 rounded bg-zinc-800 text-white"
+                  required
+                />
+                <input
+                  type="date"
+                  value={productReportEnd}
+                  onChange={e => setProductReportEnd(e.target.value)}
+                  className="p-2 rounded bg-zinc-800 text-white"
+                  required
+                />
+              </div>
+              <label className="text-sm text-gray-300 mt-2">Producto</label>
+              <select
+                value={selectedReportProduct?.product.id || ""}
+                onChange={e => {
+                  const prod = products.find(p => p.product.id === Number(e.target.value));
+                  setSelectedReportProduct(prod || null);
+                }}
+                className="p-2 rounded bg-zinc-800 text-white"
+                required
+              >
+                <option value="">Seleccionar producto</option>
+                {products.map((item) => (
+                  <option key={item.product.id} value={item.product.id}>
+                    {item.product.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg mt-2"
+                disabled={loadingProductReport}
+              >
+                {loadingProductReport ? "Cargando..." : "Ver informe por producto"}
+              </button>
+            </form>
+            <ProductSalesReportModal
+              open={!!productReportData}
+              onClose={() => setProductReportData(null)}
+              productName={selectedReportProduct?.product.name || ""}
+              data={productReportData}
+              startDate={productReportStart}
+              endDate={productReportEnd}
+            />
+          </div>
+        </div>
+      )}
 
             <input
               type="text"
@@ -237,7 +409,7 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
                     </tr>
                   ) : (
                     products
-                      .filter((item: any) => {
+                      .filter((item) => {
                         const values = [
                           item.product.name,
                           item.product.barcode,
@@ -252,7 +424,7 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
                             .includes(search.toLowerCase()),
                         );
                       })
-                      .map((item: any) => (
+                      .map((item) => (
                         <tr key={item.product.id}>
                           <td className="px-4 py-2">{item.product.name}</td>
                           <td className="px-4 py-2">{item.product.barcode}</td>
