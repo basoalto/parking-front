@@ -66,25 +66,34 @@ export function InventoryModal({
     }
   };
 
-  const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editProductData) return;
+const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  if (!editProductData) return;
 
-    const form = new FormData(e.currentTarget);
+  const form = new FormData(e.currentTarget);
 
-    try {
-      await editProduct(editProductData.product.id, {
-        name: form.get("name"),
-        price: Number(form.get("price")),
-        description: form.get("description"),
-      });
-
-      setEditProductData(null);
-      fetchProducts();
-    } catch {
-      alert("Error al editar producto");
+  try {
+    const data: any = {
+      name: form.get('name'),
+      price: Number(form.get('price')),
+      description: form.get('description'),
+      parkingLotId,
+    };
+    const newQuantity = Number(form.get('quantity'));
+    if (
+      !isNaN(newQuantity) &&
+      typeof editProductData.quantity !== 'undefined' &&
+      newQuantity !== editProductData.quantity
+    ) {
+      data.quantity = newQuantity;
     }
-  };
+    await editProduct(editProductData.product.id, data);
+    setEditProductData(null);
+    fetchProducts();
+  } catch {
+    alert('Error al editar producto');
+  }
+};
 
   const handleDeleteProduct = async (id: number) => {
     if (!window.confirm("¿Eliminar producto?")) return;
@@ -372,56 +381,70 @@ export function InventoryModal({
         </div>
       )}
 
-      {/* POPUP EDITAR PRODUCTO */}
-      {editProductData && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
-          <div className="bg-zinc-900 border-2 border-blue-500/30 rounded-lg p-8 max-w-md w-full relative">
-            <button
-              onClick={() => setEditProductData(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-blue-400"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <h3 className="text-2xl font-bold text-blue-400 mb-4">
-              Editar Producto
-            </h3>
-
-            <form onSubmit={handleEditProduct} className="space-y-4">
-              <input
-                name="name"
-                defaultValue={editProductData.product.name}
-                required
-                className="w-full p-2 rounded bg-zinc-800 text-white"
-                placeholder="Nombre"
-              />
-
-              <input
-                name="price"
-                type="number"
-                defaultValue={editProductData.product.price}
-                required
-                className="w-full p-2 rounded bg-zinc-800 text-white"
-                placeholder="Precio"
-              />
-
-              <input
-                name="description"
-                defaultValue={editProductData.product.description}
-                className="w-full p-2 rounded bg-zinc-800 text-white"
-                placeholder="Descripción"
-              />
-
-              <button
-                type="submit"
-                className="w-full py-2 bg-blue-600 text-white rounded-lg"
-              >
-                Guardar Cambios
-              </button>
-            </form>
-          </div>
+{editProductData && (
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+    <div className="bg-zinc-900 border-2 border-blue-500/30 rounded-lg p-8 max-w-md w-full relative">
+      <button
+        onClick={() => setEditProductData(null)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-blue-400"
+      >
+        <X className="w-6 h-6" />
+      </button>
+      <h3 className="text-2xl font-bold text-blue-400 mb-4">
+        Editar Producto
+      </h3>
+      <form onSubmit={handleEditProduct} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-blue-400 mb-1">Nombre</label>
+          <input
+            name="name"
+            defaultValue={editProductData.product.name}
+            required
+            className="w-full p-2 rounded bg-zinc-800 text-white"
+            placeholder="Nombre"
+          />
         </div>
-      )}
+        <div>
+          <label className="block text-sm font-medium text-blue-400 mb-1">Precio</label>
+          <input
+            name="price"
+            type="number"
+            defaultValue={editProductData.product.price}
+            required
+            className="w-full p-2 rounded bg-zinc-800 text-white"
+            placeholder="Precio"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-blue-400 mb-1">Descripción</label>
+          <input
+            name="description"
+            defaultValue={editProductData.product.description}
+            className="w-full p-2 rounded bg-zinc-800 text-white"
+            placeholder="Descripción"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-blue-400 mb-1">Cantidad</label>
+          <input
+            name="quantity"
+            type="number"
+            defaultValue={editProductData.quantity}
+            required
+            className="w-full p-2 rounded bg-zinc-800 text-white"
+            placeholder="Cantidad"
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full py-2 bg-blue-600 text-white rounded-lg"
+        >
+          Guardar Cambios
+        </button>
+      </form>
+    </div>
+  </div>
+)}
     </>
   );
 }
