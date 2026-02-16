@@ -12,6 +12,7 @@ import {
 import { X, Pencil, Trash2, Plus, BarChart2 } from "lucide-react";
 import { SalesReportModal } from "./SalesReportModal";
 import { ProductSalesReportModal } from "./ProductSalesReportModal";
+import InventoryTable from "./InventoryTable";
 
 interface InventoryModalProps {
   parkingLotId: number;
@@ -24,30 +25,51 @@ export function InventoryModal({
   open,
   onClose,
 }: InventoryModalProps) {
-  const [products, setProducts] = useState<{ product: Product; quantity: number }[]>([]);
+  const [products, setProducts] = useState<
+    { product: Product; quantity: number }[]
+  >([]);
   const [search, setSearch] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editProductData, setEditProductData] = useState<{ product: Product; quantity: number } | null>(null);
+  const [editProductData, setEditProductData] = useState<{
+    product: Product;
+    quantity: number;
+  } | null>(null);
   const [showInvalidQuantity, setShowInvalidQuantity] = useState(false);
 
-  const [selectedProduct, setSelectedProduct] = useState<{ product: Product; quantity: number } | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<{
+    product: Product;
+    quantity: number;
+  } | null>(null);
   const [sellQuantity, setSellQuantity] = useState<number | "">("");
   const [sellTotal, setSellTotal] = useState(0);
   const [showSaleSuccess, setShowSaleSuccess] = useState(false);
 
   // Reporte de ventas
   const [showSalesReport, setShowSalesReport] = useState(false);
-  const [salesReportData, setSalesReportData] = useState<{ productId: number; productName: string; totalQuantity: string; totalAmount: string }[]>([]);
+  const [salesReportData, setSalesReportData] = useState<
+    {
+      productId: number;
+      productName: string;
+      totalQuantity: string;
+      totalAmount: string;
+    }[]
+  >([]);
   const [showSalesReportModal, setShowSalesReportModal] = useState(false);
   const [salesReportStart, setSalesReportStart] = useState("");
   const [salesReportEnd, setSalesReportEnd] = useState("");
   const [loadingSalesReport, setLoadingSalesReport] = useState(false);
 
   // Reporte por producto
-  const [productReportData, setProductReportData] = useState<{ totalQuantity: string; totalAmount: string } | null>(null);
+  const [productReportData, setProductReportData] = useState<{
+    totalQuantity: string;
+    totalAmount: string;
+  } | null>(null);
   const [productReportStart, setProductReportStart] = useState("");
   const [productReportEnd, setProductReportEnd] = useState("");
-  const [selectedReportProduct, setSelectedReportProduct] = useState<{ product: Product; quantity: number } | null>(null);
+  const [selectedReportProduct, setSelectedReportProduct] = useState<{
+    product: Product;
+    quantity: number;
+  } | null>(null);
   const [loadingProductReport, setLoadingProductReport] = useState(false);
 
   useEffect(() => {
@@ -87,34 +109,37 @@ export function InventoryModal({
     }
   };
 
-const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (!editProductData) return;
+  const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editProductData) return;
 
-  const form = new FormData(e.currentTarget);
+    const form = new FormData(e.currentTarget);
 
-  try {
-    const data: Partial<Product> & { parkingLotId: number; quantity?: number } = {
-      name: String(form.get('name') || ''),
-      price: Number(form.get('price')),
-      description: String(form.get('description') || ''),
-      parkingLotId,
-    };
-    const newQuantity = Number(form.get('quantity'));
-    if (
-      !isNaN(newQuantity) &&
-      typeof editProductData.quantity !== 'undefined' &&
-      newQuantity !== editProductData.quantity
-    ) {
-      data.quantity = newQuantity;
+    try {
+      const data: Partial<Product> & {
+        parkingLotId: number;
+        quantity?: number;
+      } = {
+        name: String(form.get("name") || ""),
+        price: Number(form.get("price")),
+        description: String(form.get("description") || ""),
+        parkingLotId,
+      };
+      const newQuantity = Number(form.get("quantity"));
+      if (
+        !isNaN(newQuantity) &&
+        typeof editProductData.quantity !== "undefined" &&
+        newQuantity !== editProductData.quantity
+      ) {
+        data.quantity = newQuantity;
+      }
+      await editProduct(editProductData.product.id, data);
+      setEditProductData(null);
+      fetchProducts();
+    } catch {
+      alert("Error al editar producto");
     }
-    await editProduct(editProductData.product.id, data);
-    setEditProductData(null);
-    fetchProducts();
-  } catch {
-    alert('Error al editar producto');
-  }
-};
+  };
 
   const handleDeleteProduct = async (id: number) => {
     if (!window.confirm("¿Eliminar producto?")) return;
@@ -129,7 +154,11 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
   const handleSell = async () => {
     if (!selectedProduct) return;
 
-    if (typeof sellQuantity !== 'number' || sellQuantity < 1 || sellQuantity > selectedProduct.quantity) {
+    if (
+      typeof sellQuantity !== "number" ||
+      sellQuantity < 1 ||
+      sellQuantity > selectedProduct.quantity
+    ) {
       setShowInvalidQuantity(true);
       return;
     }
@@ -168,7 +197,6 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
               Inventario de Productos
             </h2>
 
-
             <div className="flex mb-4 gap-2">
               <button
                 onClick={() => setShowAddForm(true)}
@@ -185,147 +213,161 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
                 <span>Ver Informe</span>
               </button>
             </div>
-      {/* MODAL INFORME DE VENTAS GENERAL */}
-      {showSalesReport && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-zinc-900 border-2 border-orange-500/30 rounded-lg p-8 max-w-lg w-full relative">
-            <button
-              onClick={() => setShowSalesReport(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-orange-400"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <h3 className="text-2xl font-bold text-orange-400 mb-4">Informe de Ventas</h3>
-            <form
-              className="mb-4 flex flex-col gap-2"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setLoadingSalesReport(true);
-                try {
-                  const data = await getTotalSalesByParkingLot(
-                    parkingLotId,
-                    salesReportStart,
-                    salesReportEnd
-                  );
-                  setSalesReportData(data || []);
-                  setShowSalesReportModal(true);
-                } catch {
-                  setSalesReportData([]);
-                  alert("Error al obtener informe");
-                }
-                setLoadingSalesReport(false);
-              }}
-            >
-              <label className="text-sm text-gray-300">Rango de fechas</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={salesReportStart}
-                  onChange={e => setSalesReportStart(e.target.value)}
-                  className="p-2 rounded bg-zinc-800 text-white"
-                  required
-                />
-                <input
-                  type="date"
-                  value={salesReportEnd}
-                  onChange={e => setSalesReportEnd(e.target.value)}
-                  className="p-2 rounded bg-zinc-800 text-white"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg"
-                  disabled={loadingSalesReport}
-                >
-                  {loadingSalesReport ? "Cargando..." : "Ver informe"}
-                </button>
+            {/* MODAL INFORME DE VENTAS GENERAL */}
+            {showSalesReport && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
+                <div className="bg-zinc-900 border-2 border-orange-500/30 rounded-lg p-8 max-w-lg w-full relative">
+                  <button
+                    onClick={() => setShowSalesReport(false)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-orange-400"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                  <h3 className="text-2xl font-bold text-orange-400 mb-4">
+                    Informe de Ventas
+                  </h3>
+                  <form
+                    className="mb-4 flex flex-col gap-2"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      setLoadingSalesReport(true);
+                      try {
+                        const data = await getTotalSalesByParkingLot(
+                          parkingLotId,
+                          salesReportStart,
+                          salesReportEnd,
+                        );
+                        setSalesReportData(data || []);
+                        setShowSalesReportModal(true);
+                      } catch {
+                        setSalesReportData([]);
+                        alert("Error al obtener informe");
+                      }
+                      setLoadingSalesReport(false);
+                    }}
+                  >
+                    <label className="text-sm text-gray-300">
+                      Rango de fechas
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="date"
+                        value={salesReportStart}
+                        onChange={(e) => setSalesReportStart(e.target.value)}
+                        className="p-2 rounded bg-zinc-800 text-white"
+                        required
+                      />
+                      <input
+                        type="date"
+                        value={salesReportEnd}
+                        onChange={(e) => setSalesReportEnd(e.target.value)}
+                        className="p-2 rounded bg-zinc-800 text-white"
+                        required
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-orange-600 text-white rounded-lg"
+                        disabled={loadingSalesReport}
+                      >
+                        {loadingSalesReport ? "Cargando..." : "Ver informe"}
+                      </button>
+                    </div>
+                  </form>
+                  <SalesReportModal
+                    open={showSalesReportModal}
+                    onClose={() => {
+                      setShowSalesReportModal(false);
+                      setSalesReportData([]);
+                    }}
+                    data={salesReportData}
+                    startDate={salesReportStart}
+                    endDate={salesReportEnd}
+                  />
+                  <hr className="my-4 border-zinc-700" />
+                  <h4 className="text-lg font-bold text-blue-400 mb-2">
+                    Informe por Producto
+                  </h4>
+                  <form
+                    className="flex flex-col gap-2"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!selectedReportProduct) return;
+                      setLoadingProductReport(true);
+                      try {
+                        const data = await getTotalSalesByProduct(
+                          selectedReportProduct.product.id,
+                          productReportStart,
+                          productReportEnd,
+                        );
+                        setProductReportData(data);
+                      } catch {
+                        setProductReportData(null);
+                        alert("Error al obtener informe por producto");
+                      }
+                      setLoadingProductReport(false);
+                    }}
+                  >
+                    <label className="text-sm text-gray-300">
+                      Rango de fechas
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="date"
+                        value={productReportStart}
+                        onChange={(e) => setProductReportStart(e.target.value)}
+                        className="p-2 rounded bg-zinc-800 text-white"
+                        required
+                      />
+                      <input
+                        type="date"
+                        value={productReportEnd}
+                        onChange={(e) => setProductReportEnd(e.target.value)}
+                        className="p-2 rounded bg-zinc-800 text-white"
+                        required
+                      />
+                    </div>
+                    <label className="text-sm text-gray-300 mt-2">
+                      Producto
+                    </label>
+                    <select
+                      value={selectedReportProduct?.product.id || ""}
+                      onChange={(e) => {
+                        const prod = products.find(
+                          (p) => p.product.id === Number(e.target.value),
+                        );
+                        setSelectedReportProduct(prod || null);
+                      }}
+                      className="p-2 rounded bg-zinc-800 text-white"
+                      required
+                    >
+                      <option value="">Seleccionar producto</option>
+                      {products.map((item) => (
+                        <option key={item.product.id} value={item.product.id}>
+                          {item.product.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg mt-2"
+                      disabled={loadingProductReport}
+                    >
+                      {loadingProductReport
+                        ? "Cargando..."
+                        : "Ver informe por producto"}
+                    </button>
+                  </form>
+                  <ProductSalesReportModal
+                    open={!!productReportData}
+                    onClose={() => setProductReportData(null)}
+                    productName={selectedReportProduct?.product.name || ""}
+                    data={productReportData}
+                    startDate={productReportStart}
+                    endDate={productReportEnd}
+                  />
+                </div>
               </div>
-            </form>
-            <SalesReportModal
-              open={showSalesReportModal}
-              onClose={() => {
-                setShowSalesReportModal(false);
-                setSalesReportData([]);
-              }}
-              data={salesReportData}
-              startDate={salesReportStart}
-              endDate={salesReportEnd}
-            />
-            <hr className="my-4 border-zinc-700" />
-            <h4 className="text-lg font-bold text-blue-400 mb-2">Informe por Producto</h4>
-            <form
-              className="flex flex-col gap-2"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!selectedReportProduct) return;
-                setLoadingProductReport(true);
-                try {
-                  const data = await getTotalSalesByProduct(
-                    selectedReportProduct.product.id,
-                    productReportStart,
-                    productReportEnd
-                  );
-                  setProductReportData(data);
-                } catch {
-                  setProductReportData(null);
-                  alert("Error al obtener informe por producto");
-                }
-                setLoadingProductReport(false);
-              }}
-            >
-              <label className="text-sm text-gray-300">Rango de fechas</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={productReportStart}
-                  onChange={e => setProductReportStart(e.target.value)}
-                  className="p-2 rounded bg-zinc-800 text-white"
-                  required
-                />
-                <input
-                  type="date"
-                  value={productReportEnd}
-                  onChange={e => setProductReportEnd(e.target.value)}
-                  className="p-2 rounded bg-zinc-800 text-white"
-                  required
-                />
-              </div>
-              <label className="text-sm text-gray-300 mt-2">Producto</label>
-              <select
-                value={selectedReportProduct?.product.id || ""}
-                onChange={e => {
-                  const prod = products.find(p => p.product.id === Number(e.target.value));
-                  setSelectedReportProduct(prod || null);
-                }}
-                className="p-2 rounded bg-zinc-800 text-white"
-                required
-              >
-                <option value="">Seleccionar producto</option>
-                {products.map((item) => (
-                  <option key={item.product.id} value={item.product.id}>
-                    {item.product.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg mt-2"
-                disabled={loadingProductReport}
-              >
-                {loadingProductReport ? "Cargando..." : "Ver informe por producto"}
-              </button>
-            </form>
-            <ProductSalesReportModal
-              open={!!productReportData}
-              onClose={() => setProductReportData(null)}
-              productName={selectedReportProduct?.product.name || ""}
-              data={productReportData}
-              startDate={productReportStart}
-              endDate={productReportEnd}
-            />
-          </div>
-        </div>
-      )}
+            )}
 
             <input
               type="text"
@@ -387,81 +429,29 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
               </div>
             )}
 
-            {/* Tabla */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-left text-gray-400">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2">Nombre</th>
-                    <th className="px-4 py-2">Código</th>
-                    <th className="px-4 py-2">Precio</th>
-                    <th className="px-4 py-2">Descripción</th>
-                    <th className="px-4 py-2">Cantidad</th>
-                    <th className="px-4 py-2">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="text-center py-4">
-                        No hay productos
-                      </td>
-                    </tr>
-                  ) : (
-                    products
-                      .filter((item) => {
-                        const values = [
-                          item.product.name,
-                          item.product.barcode,
-                          item.product.price,
-                          item.product.description,
-                          item.quantity,
-                        ];
-                        return values.some((v) =>
-                          v
-                            ?.toString()
-                            .toLowerCase()
-                            .includes(search.toLowerCase()),
-                        );
-                      })
-                      .map((item) => (
-                        <tr key={item.product.id}>
-                          <td className="px-4 py-2">{item.product.name}</td>
-                          <td className="px-4 py-2">{item.product.barcode}</td>
-                          <td className="px-4 py-2">${item.product.price}</td>
-                          <td className="px-4 py-2">
-                            {item.product.description}
-                          </td>
-                          <td className="px-4 py-2">{item.quantity}</td>
-                          <td className="px-4 py-2 flex space-x-2">
-                            <button onClick={() => setEditProductData(item)}>
-                              <Pencil className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              onClick={() =>
-                                handleDeleteProduct(item.product.id)
-                              }
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setSelectedProduct(item);
-                                setSellQuantity(1);
-                                setSellTotal(item.product.price);
-                              }}
-                            >
-                              Vender
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            {/* Tabla de inventario con scroll y máximo 10 productos */}
+            <InventoryTable
+              products={products
+                .filter((item) => {
+                  const values = [
+                    item.product.name,
+                    item.product.barcode,
+                    item.product.price,
+                    item.product.description,
+                    item.quantity,
+                  ];
+                  return values.some((v) =>
+                    v?.toString().toLowerCase().includes(search.toLowerCase())
+                  );
+                })}
+              onEdit={(item) => setEditProductData(item)}
+              onDelete={(id) => handleDeleteProduct(id)}
+              onSell={(item) => {
+                setSelectedProduct(item);
+                setSellQuantity(1);
+                setSellTotal(item.product.price);
+              }}
+            />
 
             {/* Popup Agregar */}
             {showAddForm && (
@@ -553,70 +543,78 @@ const handleEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
         </div>
       )}
 
-{editProductData && (
-  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
-    <div className="bg-zinc-900 border-2 border-blue-500/30 rounded-lg p-8 max-w-md w-full relative">
-      <button
-        onClick={() => setEditProductData(null)}
-        className="absolute top-4 right-4 text-gray-400 hover:text-blue-400"
-      >
-        <X className="w-6 h-6" />
-      </button>
-      <h3 className="text-2xl font-bold text-blue-400 mb-4">
-        Editar Producto
-      </h3>
-      <form onSubmit={handleEditProduct} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-blue-400 mb-1">Nombre</label>
-          <input
-            name="name"
-            defaultValue={editProductData.product.name}
-            required
-            className="w-full p-2 rounded bg-zinc-800 text-white"
-            placeholder="Nombre"
-          />
+      {editProductData && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+          <div className="bg-zinc-900 border-2 border-blue-500/30 rounded-lg p-8 max-w-md w-full relative">
+            <button
+              onClick={() => setEditProductData(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-blue-400"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h3 className="text-2xl font-bold text-blue-400 mb-4">
+              Editar Producto
+            </h3>
+            <form onSubmit={handleEditProduct} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-400 mb-1">
+                  Nombre
+                </label>
+                <input
+                  name="name"
+                  defaultValue={editProductData.product.name}
+                  required
+                  className="w-full p-2 rounded bg-zinc-800 text-white"
+                  placeholder="Nombre"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-400 mb-1">
+                  Precio
+                </label>
+                <input
+                  name="price"
+                  type="number"
+                  defaultValue={editProductData.product.price}
+                  required
+                  className="w-full p-2 rounded bg-zinc-800 text-white"
+                  placeholder="Precio"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-400 mb-1">
+                  Descripción
+                </label>
+                <input
+                  name="description"
+                  defaultValue={editProductData.product.description}
+                  className="w-full p-2 rounded bg-zinc-800 text-white"
+                  placeholder="Descripción"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-400 mb-1">
+                  Cantidad
+                </label>
+                <input
+                  name="quantity"
+                  type="number"
+                  defaultValue={editProductData.quantity}
+                  required
+                  className="w-full p-2 rounded bg-zinc-800 text-white"
+                  placeholder="Cantidad"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2 bg-blue-600 text-white rounded-lg"
+              >
+                Guardar Cambios
+              </button>
+            </form>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-blue-400 mb-1">Precio</label>
-          <input
-            name="price"
-            type="number"
-            defaultValue={editProductData.product.price}
-            required
-            className="w-full p-2 rounded bg-zinc-800 text-white"
-            placeholder="Precio"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-blue-400 mb-1">Descripción</label>
-          <input
-            name="description"
-            defaultValue={editProductData.product.description}
-            className="w-full p-2 rounded bg-zinc-800 text-white"
-            placeholder="Descripción"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-blue-400 mb-1">Cantidad</label>
-          <input
-            name="quantity"
-            type="number"
-            defaultValue={editProductData.quantity}
-            required
-            className="w-full p-2 rounded bg-zinc-800 text-white"
-            placeholder="Cantidad"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full py-2 bg-blue-600 text-white rounded-lg"
-        >
-          Guardar Cambios
-        </button>
-      </form>
-    </div>
-  </div>
-)}
+      )}
     </>
   );
 }
