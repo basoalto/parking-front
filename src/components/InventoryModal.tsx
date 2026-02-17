@@ -164,7 +164,11 @@ export function InventoryModal({
     }
 
     try {
-      const res = await sellProduct(selectedProduct.product.id, sellQuantity);
+      const res = await sellProduct(
+        selectedProduct.product.id,
+        parkingLotId,
+        sellQuantity
+      );
 
       if (res?.sale?.id) {
         setShowSaleSuccess(true);

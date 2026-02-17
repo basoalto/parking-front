@@ -58,9 +58,9 @@ export async function decrementProductStock(stockId: number, quantity: number) {
   return await request(`/products/stock/${stockId}/decrement`, 'PATCH', { quantity });
 }
 // 4. Descontar inventario y registrar venta
-export async function sellProduct(stockId: number, quantity: number) {
+export async function sellProduct(productId: number, parkingLotId: number, quantity: number) {
   return await request<{ stock: any; sale: any }>(
-    `/products/stock/${stockId}/decrement`,
+    `/products/stock/${productId}/${parkingLotId}/decrement`,
     'PATCH',
     { quantity }
   );
