@@ -35,13 +35,22 @@ export function SalesReportModal({ open, onClose, data, startDate, endDate }: Sa
                 <td colSpan={3} className="text-center py-4">Sin ventas</td>
               </tr>
             ) : (
-              data.map((item) => (
-                <tr key={item.productId}>
-                  <td className="px-4 py-2">{item.productName}</td>
-                  <td className="px-4 py-2">{item.totalQuantity}</td>
-                  <td className="px-4 py-2">${item.totalAmount}</td>
+              <>
+                {data.map((item) => (
+                  <tr key={item.productId}>
+                    <td className="px-4 py-2">{item.productName}</td>
+                    <td className="px-4 py-2">{item.totalQuantity}</td>
+                    <td className="px-4 py-2">${item.totalAmount}</td>
+                  </tr>
+                ))}
+                <tr className="font-bold text-orange-300 border-t border-orange-500/30">
+                  <td className="px-4 py-2">Total</td>
+                  <td className="px-4 py-2"></td>
+                  <td className="px-4 py-2">
+                    ${data.reduce((acc, item) => acc + (Number(item.totalAmount) || 0), 0)}
+                  </td>
                 </tr>
-              ))
+              </>
             )}
           </tbody>
         </table>
